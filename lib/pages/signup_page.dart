@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'signin_page.dart'; // Import the SignInPage
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -9,6 +10,10 @@ class SignupPage extends StatefulWidget {
 
 class _SignupPageState extends State<SignupPage> {
   String _selectedRole = 'Farmer'; // Default value for the dropdown
+  final TextEditingController nameController = TextEditingController(); // Name input controller
+  final TextEditingController mobileController = TextEditingController(); // Mobile input controller
+  String nameErrorMessage = ''; // Error message for Name field
+  String mobileErrorMessage = ''; // Error message for Mobile Number field
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +26,8 @@ class _SignupPageState extends State<SignupPage> {
             // Logo Image
             Image.asset(
               'lib/images/logo.png', // Add your logo image here
-              height: 100,
-              width: 100,
+              height: 50,
+              width: 50,
             ),
             const SizedBox(height: 20),
             // Hybrid Market Text
@@ -56,6 +61,7 @@ class _SignupPageState extends State<SignupPage> {
             const SizedBox(height: 30),
             // Name Input Box
             TextField(
+              controller: nameController,
               decoration: InputDecoration(
                 labelText: 'Name',
                 labelStyle: TextStyle(color: Colors.black54), // Set label color here
@@ -67,11 +73,13 @@ class _SignupPageState extends State<SignupPage> {
                   borderSide: const BorderSide(color: Colors.green, width: 2),
                   borderRadius: BorderRadius.circular(0),
                 ),
+                errorText: nameErrorMessage.isNotEmpty ? nameErrorMessage : null, // Show error for Name
               ),
             ),
             const SizedBox(height: 20),
             // Mobile Number Input Box
             TextField(
+              controller: mobileController,
               decoration: InputDecoration(
                 labelText: 'Mobile No.',
                 labelStyle: TextStyle(color: Colors.black54), // Set label color here
@@ -83,25 +91,9 @@ class _SignupPageState extends State<SignupPage> {
                   borderSide: const BorderSide(color: Colors.green, width: 2),
                   borderRadius: BorderRadius.circular(0),
                 ),
+                errorText: mobileErrorMessage.isNotEmpty ? mobileErrorMessage : null, // Show error for Mobile
               ),
               keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            // OTP Input Box
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'OTP',
-                labelStyle: TextStyle(color: Colors.black54), // Set label color here
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.green),
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.green, width: 2),
-                  borderRadius: BorderRadius.circular(0),
-                ),
-              ),
-              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
             // Dropdown List
@@ -136,7 +128,24 @@ class _SignupPageState extends State<SignupPage> {
             // Sign Up Button
             ElevatedButton(
               onPressed: () {
-                // Handle sign-up logic here
+                String name = nameController.text.trim();
+                String mobileNumber = mobileController.text.trim();
+
+                // Validate Name and Mobile Number
+                setState(() {
+                  nameErrorMessage = name.isEmpty ? 'Name is required' : '';
+                  mobileErrorMessage = mobileNumber.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(mobileNumber)
+                      ? 'Invalid mobile number'
+                      : '';
+                });
+
+                if (nameErrorMessage.isEmpty && mobileErrorMessage.isEmpty) {
+                  // Clear error message and navigate to SignInPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SigninPage()),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
