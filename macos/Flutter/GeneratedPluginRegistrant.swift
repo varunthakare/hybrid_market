@@ -8,5 +8,5 @@ import Foundation
 import connectivity_plus
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
+  ConnectivityPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlugin"))
 }
