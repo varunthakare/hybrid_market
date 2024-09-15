@@ -98,11 +98,12 @@ class _SigninPageState extends State<SigninPage> {
     }
   }
 
-  Future<void> verify(String otp) async {
+  Future<void> verify(String phoneno, String otp) async {
     final response = await http.post(
       Uri.parse('http://localhost:8585/api/login/otp-verify'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
+        "mobileno":phoneno ,
         "otp": otp
       }),
     );
@@ -260,7 +261,7 @@ class _SigninPageState extends State<SigninPage> {
                   onPressed: () {
                     String enteredOtp = otpController.text.trim();
                     if (enteredOtp.isNotEmpty) {
-                      verify(enteredOtp); // Pass the entered OTP for verification
+                      verify(mobileController.text , enteredOtp); // Pass the entered OTP for verification
                     } else {
                       setState(() {
                         errorMessage = "Please enter the OTP";
