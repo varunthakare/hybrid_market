@@ -1,6 +1,9 @@
 import 'dart:async'; // For Timer
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class SigninPage extends StatefulWidget {
   final String? mobileNumber; // Accept mobile number
@@ -67,6 +70,33 @@ class _SigninPageState extends State<SigninPage> {
       mobileController.clear();
     });
   }
+
+  Future<void> sendOtp(String phoneNumber) async {
+  final response = await http.post(
+    Uri.parse('http://localhost:8080/api/login'),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "phoneNumber": phoneNumber
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    print("OTP Sent");
+    // Handle OTP sent successfully
+    setState(() {
+      otpVisible = true; // Show OTP input field
+      mobileDisabled = true; // Disable mobile input and SEND OTP button
+      startTimer(); // Start the timer for OTP resend
+    });
+  } else {
+    print("Failed to send OTP");
+    // Handle failure to send OTP (e.g., show error message)
+    setState(() {
+      errorMessage = "Failed to send OTP"; // Display error message
+    });
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +230,7 @@ class _SigninPageState extends State<SigninPage> {
                     ? ElevatedButton(
                         onPressed: () {
                           // Handle sign-in logic here
+                          sendOtp(mobileController.text);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
