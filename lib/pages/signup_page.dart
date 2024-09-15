@@ -143,7 +143,9 @@ class _SignupPageState extends State<SignupPage> {
                   // Clear error message and navigate to SignInPage
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SigninPage()),
+                    MaterialPageRoute(
+                      builder: (context) => SigninPage(mobileNumber: mobileNumber),
+                    ), // Pass mobile number to SigninPage
                   );
                 }
               },

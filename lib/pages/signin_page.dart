@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'signup_page.dart';
 
 class SigninPage extends StatefulWidget {
-  const SigninPage({super.key});
+  final String? mobileNumber; // Accept mobile number
+
+  const SigninPage({super.key, this.mobileNumber}); // Constructor
 
   @override
   _SigninPageState createState() => _SigninPageState();
@@ -17,11 +19,14 @@ class _SigninPageState extends State<SigninPage> {
   bool resendEnabled = false; // Controls resend button state
   int secondsRemaining = 59; // Timer countdown for resend button
   Timer? countdownTimer;
+  bool otpSent = false; // New flag to track OTP sent status
 
   @override
   void initState() {
     super.initState();
-    mobileController.clear();
+    if (widget.mobileNumber != null) {
+      mobileController.text = widget.mobileNumber!;
+    }
   }
 
   @override
@@ -32,13 +37,19 @@ class _SigninPageState extends State<SigninPage> {
   }
 
   void startTimer() {
-    resendEnabled = false;
+    countdownTimer?.cancel(); // Cancel the existing timer if any
+    setState(() {
+      secondsRemaining = 59; // Reset the timer
+      resendEnabled = false;
+    });
+  
     countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (secondsRemaining > 0) {
           secondsRemaining--;
         } else {
           resendEnabled = true;
+          mobileDisabled = false;
           timer.cancel();
         }
       });
@@ -52,6 +63,7 @@ class _SigninPageState extends State<SigninPage> {
       errorMessage = '';
       resendEnabled = false;
       secondsRemaining = 59;
+      otpSent = false;
       mobileController.clear();
     });
   }
@@ -135,10 +147,8 @@ class _SigninPageState extends State<SigninPage> {
                   ? ElevatedButton(
                       onPressed: resendEnabled
                           ? () {
-                              setState(() {
-                                secondsRemaining = 59;
-                                startTimer();
-                              });
+                              startTimer(); // Restart timer
+                              // Add logic to resend OTP here if needed
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
@@ -160,6 +170,7 @@ class _SigninPageState extends State<SigninPage> {
                           setState(() {
                             otpVisible = true;
                             mobileDisabled = true;
+                            otpSent = true; // Update OTP sent status
                             errorMessage = '';
                             startTimer(); // Start countdown timer
                           });
@@ -176,9 +187,9 @@ class _SigninPageState extends State<SigninPage> {
                           borderRadius: BorderRadius.circular(0),
                         ),
                       ),
-                      child: const Text(
-                        'SEND OTP',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      child: Text(
+                        otpSent ? 'RESEND OTP' : 'SEND OTP', // Display RESEND OTP if sent
+                        style: const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
               const SizedBox(height: 30),
