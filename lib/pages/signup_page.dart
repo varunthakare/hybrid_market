@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'signin_page.dart'; // Import the SignInPage
+import 'dashboard_page.dart'; // Import the DashboardPage
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SignupPage extends StatefulWidget {
-  const SignupPage({super.key});
+  final String mobileno;
+  const SignupPage({super.key, required this.mobileno}); // Constructor that accepts mobile number
 
   @override
   _SignupPageState createState() => _SignupPageState();
@@ -13,7 +17,40 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController nameController = TextEditingController(); // Name input controller
   final TextEditingController mobileController = TextEditingController(); // Mobile input controller
   String nameErrorMessage = ''; // Error message for Name field
-  String mobileErrorMessage = ''; // Error message for Mobile Number field
+  bool isAuthenticated = false; // Flag to check if user is already authenticated
+
+  @override
+  void initState() {
+    super.initState();
+    mobileController.text = widget.mobileno; // Initialize mobile field with the provided number
+    // Here you can add logic to check if the user is already authenticated
+    // For demo purposes, we'll assume the user is not authenticated.
+    // If they are authenticated, you can set the isAuthenticated flag to true.
+  }
+
+  Future<void> register(String name, String type, String phoneNumber) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8585/api/register'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "name": name,
+        "type": type,
+        "mobileno": phoneNumber
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print("Registered");
+      // After registration, navigate to the dashboard
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DashboardPage()), // Navigate to DashboardPage
+      );
+    } else {
+      print("Failed to Register");
+      // Handle registration failure (e.g., show error message)
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +101,7 @@ class _SignupPageState extends State<SignupPage> {
               controller: nameController,
               decoration: InputDecoration(
                 labelText: 'Name',
-                labelStyle: TextStyle(color: Colors.black54), // Set label color here
+                labelStyle: const TextStyle(color: Colors.black54), // Set label color here
                 border: OutlineInputBorder(
                   borderSide: const BorderSide(color: Colors.green),
                   borderRadius: BorderRadius.circular(0),
@@ -80,9 +117,10 @@ class _SignupPageState extends State<SignupPage> {
             // Mobile Number Input Box
             TextField(
               controller: mobileController,
+              readOnly: true, // Mobile number is not editable
               decoration: InputDecoration(
                 labelText: 'Mobile No.',
-                labelStyle: TextStyle(color: Colors.black54), // Set label color here
+                labelStyle: const TextStyle(color: Colors.black54), // Set label color here
                 border: OutlineInputBorder(
                   borderSide: const BorderSide(color: Colors.green),
                   borderRadius: BorderRadius.circular(0),
@@ -91,9 +129,7 @@ class _SignupPageState extends State<SignupPage> {
                   borderSide: const BorderSide(color: Colors.green, width: 2),
                   borderRadius: BorderRadius.circular(0),
                 ),
-                errorText: mobileErrorMessage.isNotEmpty ? mobileErrorMessage : null, // Show error for Mobile
               ),
-              keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 20),
             // Dropdown List
@@ -106,7 +142,7 @@ class _SignupPageState extends State<SignupPage> {
               },
               decoration: InputDecoration(
                 labelText: 'I am a...',
-                labelStyle: TextStyle(color: Colors.black54),
+                labelStyle: const TextStyle(color: Colors.black54),
                 border: OutlineInputBorder(
                   borderSide: const BorderSide(color: Colors.green),
                   borderRadius: BorderRadius.circular(0),
@@ -116,79 +152,73 @@ class _SignupPageState extends State<SignupPage> {
                   borderRadius: BorderRadius.circular(0),
                 ),
               ),
-              items: <String>['Farmer', 'Consumer']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+              items: const [
+                DropdownMenuItem(value: 'Farmer', child: Text('Farmer')),
+                DropdownMenuItem(value: 'Retailer', child: Text('Retailer')),
+                DropdownMenuItem(value: 'Consumer', child: Text('Consumer')),
+              ],
             ),
             const SizedBox(height: 30),
             // Sign Up Button
             ElevatedButton(
               onPressed: () {
-                String name = nameController.text.trim();
-                String mobileNumber = mobileController.text.trim();
-
-                // Validate Name and Mobile Number
-                setState(() {
-                  nameErrorMessage = name.isEmpty ? 'Name is required' : '';
-                  mobileErrorMessage = mobileNumber.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(mobileNumber)
-                      ? 'Invalid mobile number'
-                      : '';
-                });
-
-                if (nameErrorMessage.isEmpty && mobileErrorMessage.isEmpty) {
-                  // Clear error message and navigate to SignInPage
+                if (isAuthenticated) {
+                  // If the user is authenticated, navigate to the dashboard directly
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => SigninPage(mobileNumber: mobileNumber),
-                    ), // Pass mobile number to SigninPage
+                    MaterialPageRoute(builder: (context) => DashboardPage()), // Navigate to DashboardPage
                   );
+                } else {
+                  // Otherwise, proceed with registration
+                  String name = nameController.text.trim();
+                  if (name.isEmpty) {
+                    setState(() {
+                      nameErrorMessage = 'Name is required';
+                    });
+                  } else {
+                    setState(() {
+                      nameErrorMessage = ''; // Clear error
+                    });
+                    register(name, _selectedRole, widget.mobileno); // Register the user
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 140),
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 120),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(0),
                 ),
               ),
               child: const Text(
                 'SIGN UP',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
             const SizedBox(height: 20),
-            // Already have an account? Sign in
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Navigate back to the SignInPage
-              },
-              child: RichText(
-                text: TextSpan(
-                  text: "Already have an account? ",
-                  style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: 16,
-                  ),
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: 'Sign in',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+            // Already have an account? Sign in link
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Already have an account? ', style: TextStyle(fontSize: 16, color: Colors.black54)),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SigninPage(mobileNumber: widget.mobileno)),
+                    );
+                  },
+                  child: const Text(
+                    'Sign in',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      decoration: TextDecoration.underline,
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),

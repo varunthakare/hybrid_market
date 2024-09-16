@@ -1,8 +1,12 @@
 import 'dart:async'; // For Timer
 import 'package:flutter/material.dart';
+import 'dashboard_page.dart';
 import 'signup_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+// Uncomment or define this if you have the DashboardPage widget somewhere else in your project
+// import 'dashboard_page.dart';
 
 class SigninPage extends StatefulWidget {
   final String? mobileNumber; // Accept mobile number
@@ -83,7 +87,6 @@ class _SigninPageState extends State<SigninPage> {
 
     if (response.statusCode == 200) {
       print("OTP Sent");
-      // Handle OTP sent successfully
       setState(() {
         otpVisible = true; // Show OTP input field
         mobileDisabled = true; // Disable mobile input and SEND OTP button
@@ -91,7 +94,6 @@ class _SigninPageState extends State<SigninPage> {
       });
     } else {
       print("Failed to send OTP");
-      // Handle failure to send OTP (e.g., show error message)
       setState(() {
         errorMessage = "Failed to send OTP"; // Display error message
       });
@@ -103,21 +105,33 @@ class _SigninPageState extends State<SigninPage> {
       Uri.parse('http://localhost:8585/api/login/otp-verify'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "mobileno":phoneno ,
+        "mobileno": phoneno,
         "otp": otp
       }),
     );
 
     if (response.statusCode == 200) {
       print("Authenticated");
-      // Handle successful OTP verification
-      setState(() {
-        errorMessage = ''; // Clear any error message
-      });
-      // Redirect to next page or perform further actions after authentication
+      final responseData = jsonDecode(response.body);
+
+      if (responseData['isNewUser'] == true) {
+        // If the user is new, redirect to SignupPage
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SignupPage(
+              mobileno: phoneno, // Pass the mobile number to SignupPage
+            ),
+          ),
+        );
+      } else {
+        // If the user is already registered, redirect to DashboardPage (you need to define it)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardPage()), // Ensure DashboardPage is imported or defined
+        );
+      }
     } else {
-      print("Failed to authenticate");
-      // Handle failure to authenticate OTP (e.g., show error message)
       setState(() {
         errorMessage = "Invalid OTP"; // Display error message
       });
@@ -259,18 +273,17 @@ class _SigninPageState extends State<SigninPage> {
                 child: otpVisible
                     ? ElevatedButton(
                   onPressed: () {
-                    String enteredOtp = otpController.text.trim();
-                    if (enteredOtp.isNotEmpty) {
-                      verify(mobileController.text , enteredOtp); // Pass the entered OTP for verification
+                    if (otpController.text.length == 6 && RegExp(r'^[0-9]+$').hasMatch(otpController.text)) {
+                      verify(mobileController.text, otpController.text);
                     } else {
                       setState(() {
-                        errorMessage = "Please enter the OTP";
+                        errorMessage = "Invalid OTP";
                       });
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 142),
+                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 120),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(0),
                     ),
@@ -281,30 +294,6 @@ class _SigninPageState extends State<SigninPage> {
                   ),
                 )
                     : const SizedBox(),
-              ),
-              const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Don\'t have an account? ', style: TextStyle(fontSize: 16, color: Colors.black54)),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SignupPage()),
-                      );
-                    },
-                    child: const Text(
-                      'Sign up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
