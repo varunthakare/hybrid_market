@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class ConsumerDashPage extends StatelessWidget {
   final bool hasProducts = false; // Set to true if products are available
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
