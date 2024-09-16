@@ -100,11 +100,12 @@ class _SigninPageState extends State<SigninPage> {
     }
   }
 
-  Future<void> verify(String otp) async {
+  Future<void> verify(String phoneno, String otp) async {
     final response = await http.post(
       Uri.parse('http://localhost:8585/api/login/otp-verify'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
+        "mobileno":phoneno ,
         "otp": otp
       }),
     );
@@ -261,6 +262,7 @@ class _SigninPageState extends State<SigninPage> {
                     ? ElevatedButton(
                   onPressed: () {
                     String enteredOtp = otpController.text.trim();
+<<<<<<< HEAD
                     // if (enteredOtp.isNotEmpty) {
                     //   verify(enteredOtp); // Pass the entered OTP for verification
                     // } else {
@@ -287,6 +289,15 @@ class _SigninPageState extends State<SigninPage> {
       errorMessage = "Please enter the OTP";
     });
   }
+=======
+                    if (enteredOtp.isNotEmpty) {
+                      verify(mobileController.text , enteredOtp); // Pass the entered OTP for verification
+                    } else {
+                      setState(() {
+                        errorMessage = "Please enter the OTP";
+                      });
+                    }
+>>>>>>> 5adb4c12c11a22915146c0b89f45aa012fd1b85d
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
