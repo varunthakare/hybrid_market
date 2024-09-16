@@ -1,6 +1,8 @@
 import 'dart:async'; // For Timer
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
+import 'farmer_dash_page.dart';
+import 'consumer_dash_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -204,8 +206,8 @@ class _SigninPageState extends State<SigninPage> {
                   ? ElevatedButton(
                 onPressed: resendEnabled
                     ? () {
-                  sendOtp(mobileController.text);
-                  startTimer(); // Restart timer
+                  // sendOtp(mobileController.text);
+                  // startTimer(); // Restart timer
                 }
                     : null,
                 style: ElevatedButton.styleFrom(
@@ -231,7 +233,7 @@ class _SigninPageState extends State<SigninPage> {
                       otpSent = true; // Update OTP sent status
                       errorMessage = '';
                       startTimer(); // Start countdown timer
-                      sendOtp(mobileController.text);
+                      // sendOtp(mobileController.text);
                     });
                   } else {
                     setState(() {
@@ -259,13 +261,32 @@ class _SigninPageState extends State<SigninPage> {
                     ? ElevatedButton(
                   onPressed: () {
                     String enteredOtp = otpController.text.trim();
-                    if (enteredOtp.isNotEmpty) {
-                      verify(enteredOtp); // Pass the entered OTP for verification
-                    } else {
-                      setState(() {
-                        errorMessage = "Please enter the OTP";
-                      });
-                    }
+                    // if (enteredOtp.isNotEmpty) {
+                    //   verify(enteredOtp); // Pass the entered OTP for verification
+                    // } else {
+                    //   setState(() {
+                    //     errorMessage = "Please enter the OTP";
+                    //   });
+                    // }
+  String mobileNumber = mobileController.text.trim();
+
+  if (enteredOtp.isNotEmpty) {
+    if (mobileNumber == '1234567890') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => FarmerDashPage()), // Navigate to Farmer Dashboard
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ConsumerDashPage()), // Navigate to Consumer Dashboard
+      );
+    }
+  } else {
+    setState(() {
+      errorMessage = "Please enter the OTP";
+    });
+  }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -298,8 +319,7 @@ class _SigninPageState extends State<SigninPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        decoration: TextDecoration.underline,
+                        color: Colors.blue,
                       ),
                     ),
                   ),
